@@ -12,6 +12,7 @@ import se.order_service_1.dto.*;
 import se.order_service_1.model.Order;
 import se.order_service_1.model.OrderItem;
 import se.order_service_1.service.OrderService;
+import se.order_service_1.service.WeatherService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class OrderController {
     private OrderService orderService;
+    private WeatherService weatherService;
 
     @Operation(summary = "Get order by id", description = "Get a list of products for a specific order by id")
     @GetMapping("/{orderId}")
@@ -29,6 +31,24 @@ public class OrderController {
         Order order = orderService.getOrderById(orderId);
         OrderResponse orderResponse = createOrderResponse(order);
         return ResponseEntity.ok(orderResponse);
+    }
+
+    @Operation(summary = "Update delivery address", description = "Update the delivery address for an order")
+    @PostMapping("/{orderId}/delivery-address")
+    public ResponseEntity<OrderResponse> updateDeliveryAddress(
+            @PathVariable Long orderId,
+            @RequestBody DeliveryAddressRequest request) {
+
+        Order order = orderService.updateDeliveryAddress(
+                orderId,
+                request.getStreet(),
+                request.getCity(),
+                request.getPostalCode(),
+                request.getCountry()
+        );
+
+        OrderResponse response = createOrderResponse(order);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get order history", description = "Get order history for a specific user by id")
@@ -42,7 +62,7 @@ public class OrderController {
 
         List<Order> orderList;
         if(orderHistoryRequest.getEarliestOrderDate() == null) {
-             orderList = orderService.getOrdersByUser(userId);
+            orderList = orderService.getOrdersByUser(userId);
         } else {
             orderList = orderService.getOrdersAfterOrderDate(userId, orderHistoryRequest.getEarliestOrderDate());
         }
@@ -120,11 +140,19 @@ public class OrderController {
                     .build();
             orderItemResponsList.add(orderItemRespons);
         }
+
+        // Hämta väderinfo om det finns en stad i leveransadressen
+        String weatherInfo = null;
+        if (order.getDeliveryAddress() != null && order.getDeliveryAddress().getCity() != null) {
+            weatherInfo = weatherService.getWeatherForCity(order.getDeliveryAddress().getCity());
+        }
+
         return OrderResponse.builder()
                 .OrderId(order.getId())
                 .items(orderItemResponsList)
                 .orderStatus(order.getOrderStatus())
                 .completedAt(order.getOrderDate())
+                .weatherInfo(weatherInfo)  // Lägg till väderinformation
                 .build();
     }
 }

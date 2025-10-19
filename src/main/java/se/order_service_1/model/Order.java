@@ -6,10 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "orderTable")
@@ -33,13 +30,12 @@ public class Order {
     @Column
     private LocalDateTime orderDate;
 
-
-//    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<OrderItem> items = new ArrayList<>();
+    // Nytt fält för leveransadress
+    @Embedded
+    private DeliveryAddress deliveryAddress;
 
     public enum OrderStatus {
         COMPLETED,
         ONGOING;
     }
-
 }

@@ -18,4 +18,6 @@ public class OrderResponse {
     Order.OrderStatus orderStatus;
     LocalDateTime completedAt;
     List<OrderItemRespons> items;
+    // Nytt fält för väderinformation
+    String weatherInfo;
 }

@@ -14,6 +14,7 @@ import se.order_service_1.exception.OrderCompletedException;
 import se.order_service_1.exception.OrderNotFoundException;
 import se.order_service_1.model.OrderItem;
 import se.order_service_1.model.Order;
+import se.order_service_1.model.DeliveryAddress;
 import se.order_service_1.repository.OrderItemRepository;
 import se.order_service_1.repository.OrderRepository;
 
@@ -131,6 +132,36 @@ public class OrderService {
             }
         }
         addOrderItem(orderID, productID, quantity);
+        return order;
+    }
+
+    /**
+     * Uppdaterar leveransadressen för en specifik order
+     *
+     * @param orderId Order-ID
+     * @param street Gatuadress
+     * @param city Stad
+     * @param postalCode Postkod
+     * @param country Land
+     * @return Den uppdaterade ordern
+     */
+    public Order updateDeliveryAddress(Long orderId, String street, String city, String postalCode, String country) {
+        log.info("updateDeliveryAddress - uppdaterar leveransadress för order med id={}, stad={}", orderId, city);
+
+        Order order = getOrderById(orderId);
+        checkNotCompleted(order);
+
+        DeliveryAddress deliveryAddress = DeliveryAddress.builder()
+                .street(street)
+                .city(city)
+                .postalCode(postalCode)
+                .country(country)
+                .build();
+
+        order.setDeliveryAddress(deliveryAddress);
+        order = orderRepository.save(order);
+
+        log.debug("updateDeliveryAddress - leveransadress uppdaterad för order med id={}", orderId);
         return order;
     }
 
